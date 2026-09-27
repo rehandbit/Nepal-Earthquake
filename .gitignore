@@ -4,3 +4,23 @@
 .virtual_documents/
 .gitignore.swp
 
+
+artifacts/
+logs/
+Modeling Earthquake Damage.docx
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+
+Thumbs.db
+# IDE settings
+.vscode/
+.idea/
