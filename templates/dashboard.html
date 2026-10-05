@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Model Performance Dashboard - Earthquake Damage Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <h1>Nepal Earthquake Damage Predictor</h1>
+    <p class="subtitle">XGBoost model trained on the 2015 Gorkha earthquake building survey</p>
+
+    <nav>
+        <a href="/" class="active">Model Performance</a>
+        <a href="/predict-form">Single Prediction</a>
+        <a href="/predict-page">Upload CSV</a>
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if report %}
+
+    <div class="card">
+        <h2>Key Metrics (on held-out test set)</h2>
+        <div class="metrics-grid">
+            {% for label, value in metrics.items() %}
+            <div class="metric-box">
+                <div class="value">{{ value }}</div>
+                <div class="label">{{ label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Confusion Matrix</h2>
+        <p>Rows = actual damage grade, Columns = predicted damage grade (1 = low, 2 = medium, 3 = almost complete destruction)</p>
+        {{ cm_table | safe }}
+    </div>
+
+    <div class="card">
+        <h2>Full Classification Report</h2>
+        <pre class="report-text">{{ classification_report_text }}</pre>
+    </div>
+
+    {% else %}
+    <div class="card">
+        <p>No evaluation report found yet. Run the training pipeline first:</p>
+        <pre class="report-text">python -m src.pipeline.train_pipeline</pre>
+        <p>This will generate <code>artifacts/evaluation_report.json</code>, which this dashboard reads.</p>
+    </div>
+    {% endif %}
+
+</body>
+</html>

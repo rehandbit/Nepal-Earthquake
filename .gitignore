@@ -5,7 +5,11 @@
 .gitignore.swp
 
 
-artifacts/
+artifacts/*
+!artifacts/model.pkl
+!artifacts/preprocessor.pkl
+!artifacts/evaluation_report.json
+
 logs/
 Modeling Earthquake Damage.docx
 

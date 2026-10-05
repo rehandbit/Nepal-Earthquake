@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Single Prediction - Earthquake Damage Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .form-grid label {
+            display: block;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 4px;
+        }
+        .form-grid input[type="number"], .form-grid select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .checkbox-grid label {
+            font-size: 13px;
+            color: #333;
+        }
+        h3 { margin-top: 24px; margin-bottom: 4px; }
+        .result-box {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .result-box .grade { font-size: 40px; font-weight: bold; color: #2e7d32; }
+        .result-box .grade-label { font-size: 16px; color: #333; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>Nepal Earthquake Damage Predictor</h1>
+    <p class="subtitle">Fill in a single building's details to predict its damage grade</p>
+
+    <nav>
+        <a href="/">Model Performance</a>
+        <a href="/predict-form" class="active">Single Prediction</a>
+        <a href="/predict-page">Upload CSV</a>
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if predicted_grade %}
+    <div class="result-box">
+        <div class="grade">Grade {{ predicted_grade }}</div>
+        <div class="grade-label">{{ predicted_label }}</div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <form action="/predict-single" method="post">
+
+            <h3>Location &amp; Structure</h3>
+            <div class="form-grid">
+                <div>
+                    <label>Geo Level 1 ID (0-30)</label>
+                    <input type="number" name="geo_level_1_id" min="0" max="30" value="8" required>
+                </div>
+                <div>
+                    <label>Geo Level 2 ID (0-1427)</label>
+                    <input type="number" name="geo_level_2_id" min="0" max="1427" value="396" required>
+                </div>
+                <div>
+                    <label>Geo Level 3 ID (0-12567)</label>
+                    <input type="number" name="geo_level_3_id" min="0" max="12567" value="1108" required>
+                </div>
+                <div>
+                    <label>Floors before earthquake</label>
+                    <input type="number" name="count_floors_pre_eq" min="1" max="10" value="2" required>
+                </div>
+                <div>
+                    <label>Building age (years)</label>
+                    <input type="number" name="age" min="0" max="500" value="15" required>
+                </div>
+                <div>
+                    <label>Area percentage</label>
+                    <input type="number" name="area_percentage" min="1" max="100" value="4" required>
+                </div>
+                <div>
+                    <label>Height percentage</label>
+                    <input type="number" name="height_percentage" min="1" max="50" value="7" required>
+                </div>
+                <div>
+                    <label>Number of families</label>
+                    <input type="number" name="count_families" min="0" max="20" value="1" required>
+                </div>
+            </div>
+
+            <h3>Categorical Features</h3>
+            <div class="form-grid">
+                {% for field, options in categorical_options.items() %}
+                <div>
+                    <label>{{ field.replace("_", " ").title() }}</label>
+                    <select name="{{ field }}">
+                        {% for opt in options %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+
+            <h3>Superstructure Material (check all that apply)</h3>
+            <div class="checkbox-grid">
+                {% for field in superstructure_fields %}
+                <label>
+                    <input type="checkbox" name="{{ field }}">
+                    {{ field.replace("has_superstructure_", "").replace("_", " ").title() }}
+                </label>
+                {% endfor %}
+            </div>
+
+            <h3>Secondary Use (check all that apply)</h3>
+            <div class="checkbox-grid">
+                {% for field in secondary_use_fields %}
+                <label>
+                    <input type="checkbox" name="{{ field }}">
+                    {% if field == "has_secondary_use" %}Has any secondary use{% else %}{{ field.replace("has_secondary_use_", "").replace("_", " ").title() }}{% endif %}
+                </label>
+                {% endfor %}
+            </div>
+
+            <br>
+            <button type="submit">Predict Damage Grade</button>
+        </form>
+    </div>
+
+</body>
+</html>

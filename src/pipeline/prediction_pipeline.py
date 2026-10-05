@@ -18,10 +18,13 @@ class PredictPipeline:
             model = load_object(self.predictpipelineconfig.model_path)
             bundle = load_object(self.predictpipelineconfig.preprocessor_path)
 
+            print("model loaded: ", model)
+            print("model type: ",type(model))
+
             preprocessor = bundle['preprocessor']
             label_encoder = bundle['label_encoder']
             age_median = bundle['age_median']
-            geo_freq_maps = bundle['geo_freq_maps']
+            geo_freq_map = bundle['geo_freq_map']
 
             df = raw_df.copy()
             building_ids = df['building_id']
@@ -34,18 +37,21 @@ class PredictPipeline:
             df["total_superstructure_materials"] = df[superstructure_cols].sum(axis=1)
             df["total_secondary_uses"] = df[secondary_use_cols].sum(axis=1)
 
-
-            for col, freq_map in geo_freq_maps.items():
+            for col, freq_map in geo_freq_map.items():
                 df[col + "_freq_enc"] = df[col].map(freq_map).fillna(0)
 
-            df = df.drop(columns=list(geo_freq_maps.keys()))
+            df = df.drop(columns=list(geo_freq_map.keys()))
 
             X = df.drop(columns = 'building_id')
-            x_transformed = x_transformed.toarray()
+            x_transformed = preprocessor.transform(X)
+            
+            
+            if hasattr(x_transformed, 'toarray()'):
+                x_transformed = x_transformed.toarray()
 
 
             prediction_encoded = model.predict(x_transformed)
-            prediction_final = label_encoder.inverse_transformed(prediction_encoded.astype(int))
+            prediction_final = label_encoder.inverse_transform(prediction_encoded.astype(int))
 
             logging.info(f"Generated {len(prediction_final)} predictions")
 
@@ -66,7 +72,7 @@ if __name__ == '__main__':
     
     pipeline = PredictPipeline()
 
-    submission_df = pipeline.predict(raw_test_df)
+    submission_df = pipeline.initiate_predict_pipeline(raw_test_df)
     submission_df.to_csv(output_path, index=False)
 
     print(f'Saved prediction to {output_path}')
